@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter_pong_online/app/data/ball_position.dart';
+import 'package:flutter_pong_online/app/data/gameScore.dart';
 import 'package:flutter_pong_online/app/data/player_position.dart';
-import 'package:flutter_pong_online/app/data/game_position.dart';
 import 'package:flutter_pong_online/app/modules/game_screen/GameLogic/ball_Logic.dart';
 import 'package:flutter_pong_online/app/modules/game_screen/GameLogic/utils.dart';
 import 'package:flutter_pong_online/app/modules/game_screen/widgets/player_widget.dart';
@@ -17,8 +18,9 @@ class Gamelogic {
   final RxDouble playerWidth = 120.0.obs;
 
   late GameSide gameside;
-  late Function syncGamePosition;
+  late BallPositionFunc syncBallPosition;
   late Function syncPlayerPosition;
+  late GameScoreFunc onScoreChanged;
 
   late Timer playerPositionTimer;
 
@@ -34,13 +36,15 @@ class Gamelogic {
 
   Gamelogic(
       {required this.gameside,
-      required this.syncGamePosition,
+      required this.syncBallPosition,
       required this.syncPlayerPosition,
+      required this.onScoreChanged,
       required vsync}) {
     ballLogic = BallLogic(
-        vsync: vsync,
-        onBallPositionChanged: onBallPositionChanged,
-        onHitFunc: onBallHitBound);
+      vsync: vsync,
+      onBallPositionChanged: onBallPositionChanged,
+      onHitFunc: onBallHitBound,
+    );
     playerPositionTimer = Timer.periodic(
         Duration(milliseconds: playersSyncInMiliseconds),
         (t) => _onSyncPlayerPosition());
@@ -49,20 +53,17 @@ class Gamelogic {
   void onBallHitBound(Side side) {
     if (side == Side.Bottom) {
       topScore.value++;
-      _updateGamePositionToServer();
+      onScoreChanged(
+          GameScore(topScore: topScore.value, bottomScore: bottomScore.value));
     } else if (side == Side.Top) {
       bottomScore.value++;
-      _updateGamePositionToServer();
+      onScoreChanged(
+          GameScore(topScore: topScore.value, bottomScore: bottomScore.value));
     }
     ;
   }
 
   void onBallPositionChanged(BallPosition ballPosition) {
-//test
-    /*  if (ballPosition.ballPosY > 300) {
-      ballLogic.onHit(Side.Top);
-    }*/
-
     if (_isMaster &&
         ballPosition.ballDirectionY == -1 &&
         ballPosition.ballPosY < playerPaddingY.value + playerHeight.value &&
@@ -145,15 +146,13 @@ class Gamelogic {
 
   void _updateGamePositionToServer() {
     print('_updateGamePositionToServer outgoing');
-    syncGamePosition(GamePosition(
+    syncBallPosition(BallPosition(
       ballPosX: ballLogic.ballPosX.value,
       ballPosY: ballLogic.ballPosY.value,
       ballXSpeed: ballLogic.ballXSpeed.value,
       ballYSpeed: ballLogic.ballYSpeed.value,
       ballDirectionX: ballLogic.directionX,
       ballDirectionY: ballLogic.directionY,
-      topScore: topScore.value,
-      bottomScore: bottomScore.value,
     ));
   }
 
@@ -163,7 +162,7 @@ class Gamelogic {
     ));
   }
 
-  void finishGame(GamePosition gamePosition) {
+  void finishGame(GameScore gamePosition) {
     ballLogic.finishGame();
 
     playerPositionTimer.cancel();
@@ -183,17 +182,20 @@ class Gamelogic {
 
   bool get _isMaster => gameside == GameSide.Bottom;
 
-  void setGamePosition(GamePosition gameposition) {
+  void setBallPosition(BallPosition ballPosition) {
     print('setGamePosition');
     ballLogic.change(BallPosition(
-        ballPosX: gameposition.ballPosX,
-        ballPosY: gameposition.ballPosY,
-        ballXSpeed: gameposition.ballXSpeed,
-        ballYSpeed: gameposition.ballYSpeed,
-        ballDirectionX: gameposition.ballDirectionX,
-        ballDirectionY: gameposition.ballDirectionY));
-    topScore.value = gameposition.topScore;
-    bottomScore.value = gameposition.bottomScore;
+        ballPosX: ballPosition.ballPosX,
+        ballPosY: ballPosition.ballPosY,
+        ballXSpeed: ballPosition.ballXSpeed,
+        ballYSpeed: ballPosition.ballYSpeed,
+        ballDirectionX: ballPosition.ballDirectionX,
+        ballDirectionY: ballPosition.ballDirectionY));
+  }
+
+  void syncScores({required int topScore, required int bottomScore}) {
+    this.topScore.value = topScore;
+    this.bottomScore.value = bottomScore;
     scoreText.value = '$bottomScore.\nVS\n$topScore';
   }
 }

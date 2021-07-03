@@ -1,4 +1,4 @@
-/*class GamePosition {
+class BallPosition {
   late double ballPosX;
   late double ballPosY;
   late double ballXSpeed;
@@ -6,14 +6,14 @@
   late int ballDirectionX;
   late int ballDirectionY;
 
-  GamePosition(
-      {
-      required this.ballPosX,
-      required this.ballPosY,
-      required this.ballXSpeed,
-      required this.ballYSpeed,
-      required this.ballDirectionX,
-      required this.ballDirectionY,});
+  BallPosition({
+    required this.ballPosX,
+    required this.ballPosY,
+    required this.ballXSpeed,
+    required this.ballYSpeed,
+    required this.ballDirectionX,
+    required this.ballDirectionY,
+  });
 
   Map<String, dynamic> toJson() {
     return {
@@ -26,7 +26,7 @@
     };
   }
 
-  GamePosition.fromJson(Map<String, dynamic> json) {
+  BallPosition.fromJson(Map<String, dynamic> json) {
     ballPosX = double.parse(json['ballPosX'].toString());
     ballPosY = double.parse(json['ballPosY'].toString());
     ballXSpeed = double.parse(json['ballXSpeed'].toString());
@@ -35,4 +35,3 @@
     ballDirectionY = json['ballDirectionY'];
   }
 }
-*/

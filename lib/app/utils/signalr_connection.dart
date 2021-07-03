@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'package:flutter_pong_online/app/data/ball_position.dart';
+import 'package:flutter_pong_online/app/data/gameScore.dart';
 import 'package:flutter_pong_online/app/data/player_position.dart';
 import 'package:flutter_pong_online/app/data/user.dart';
-import 'package:flutter_pong_online/app/data/game_position.dart';
 import 'package:flutter_pong_online/app/modules/game_screen/game_screen_controller.dart';
 import 'package:flutter_pong_online/app/modules/lobby/lobby_controller.dart';
 import 'package:get/get.dart';
@@ -14,7 +15,6 @@ import 'package:signalr_core/signalr_core.dart';
 
 class SignalrConnection extends ChangeNotifier {
   static late HubConnection connection;
-  late GamePosition gamePosition;
 
   Future<void> startConnection() async {
     await recreateConnecton();
@@ -67,24 +67,34 @@ class SignalrConnection extends ChangeNotifier {
       Get.find<LobbyController>().connectedUsersChanged(busySides);
     });
 
+    connection.on('PlayerMakeAGoal', (message) {
+      print('PlayerMakeAGoal incoming');
+      var ballPosition =
+          GameScore.fromJson(message![0] as Map<String, dynamic>);
+      Get.find<GameScreenController>().syncScores(
+          topScore: ballPosition.topScore,
+          bottomScore: ballPosition.bottomScore);
+    });
+
     connection.on('UpdateGamePosition', (message) {
       print('UpdateGamePosition incoming');
-      gamePosition = GamePosition.fromJson(message![0] as Map<String, dynamic>);
-      Get.find<GameScreenController>().setGamePosition(gamePosition);
+      var ballPosition =
+          BallPosition.fromJson(message![0] as Map<String, dynamic>);
+      Get.find<GameScreenController>().setGamePosition(ballPosition);
     });
 
     connection.on('UpdatePlayerPosition', (message) {
       print('UpdatePlayerPosition incoming');
-      var gamePosition =
+      var ballPosition =
           PlayerPosition.fromJson(message![0] as Map<String, dynamic>);
-      Get.find<GameScreenController>().setOpponentPlayerPosition(gamePosition);
+      Get.find<GameScreenController>().setOpponentPlayerPosition(ballPosition);
     });
 
     connection.on('FinishGame', (message) {
       print('FinishGame incoming');
-      var gamePosition =
-          GamePosition.fromJson(message![0] as Map<String, dynamic>);
-      Get.find<GameScreenController>().finishGame(gamePosition);
+      var ballPosition =
+          GameScore.fromJson(message![0] as Map<String, dynamic>);
+      Get.find<GameScreenController>().finishGame(ballPosition);
     });
 
     await connection.start();
@@ -114,12 +124,12 @@ class SignalrConnection extends ChangeNotifier {
     connection.invoke('login', args: [userName, position]);
   }
 
-  void updateGamePosition(GamePosition gamePosition) {
+  void updateBallPosition(BallPosition ballPosition) {
     print('updateGamePosition outgoing');
-    connection.invoke('UpdateGamePosition', args: [gamePosition.toJson()]);
+    connection.invoke('UpdateGamePosition', args: [ballPosition.toJson()]);
   }
 
-  void batGamePosition(PlayerPosition playerPosition) {
+  void updatePlayerGamePosition(PlayerPosition playerPosition) {
     print('UpdatePlayerPosition outgoing');
     connection.invoke('UpdatePlayerPosition', args: [playerPosition.toJson()]);
   }
@@ -129,5 +139,10 @@ class SignalrConnection extends ChangeNotifier {
     connection.invoke(
       'GetTakenGameSide',
     );
+  }
+
+  void updateGameScore(GameScore gameScore) {
+    print('updateGaneScore outgoing');
+    connection.invoke('PlayerMakeAGoal', args: [gameScore.toJson()]);
   }
 }

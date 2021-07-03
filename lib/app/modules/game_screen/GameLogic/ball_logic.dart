@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_pong_online/app/data/ball_position.dart';
 import 'package:flutter_pong_online/app/modules/game_screen/GameLogic/utils.dart';
 import 'package:flutter_pong_online/app/utils/screen_manager.dart';
 import 'package:flutter/animation.dart';

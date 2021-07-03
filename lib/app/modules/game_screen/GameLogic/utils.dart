@@ -1,21 +1,8 @@
-class BallPosition {
-  final double ballPosX;
-  final double ballPosY;
-  final double ballXSpeed;
-  final double ballYSpeed;
-  final int ballDirectionX;
-  final int ballDirectionY;
-
-  BallPosition(
-      {required this.ballPosX,
-      required this.ballPosY,
-      required this.ballXSpeed,
-      required this.ballYSpeed,
-      required this.ballDirectionX,
-      required this.ballDirectionY});
-}
+import 'package:flutter_pong_online/app/data/ball_position.dart';
+import 'package:flutter_pong_online/app/data/gameScore.dart';
 
 typedef BallPositionFunc = void Function(BallPosition);
+typedef GameScoreFunc = void Function(GameScore);
 
 typedef OnHitFunc = void Function(Side);
 

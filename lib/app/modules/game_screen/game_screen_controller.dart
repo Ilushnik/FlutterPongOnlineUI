@@ -1,5 +1,6 @@
+import 'package:flutter_pong_online/app/data/ball_position.dart';
+import 'package:flutter_pong_online/app/data/gameScore.dart';
 import 'package:flutter_pong_online/app/data/player_position.dart';
-import 'package:flutter_pong_online/app/data/game_position.dart';
 import 'package:flutter_pong_online/app/modules/game_screen/GameLogic/game_logic.dart';
 import 'package:flutter_pong_online/app/modules/game_screen/widgets/player_widget.dart';
 import 'package:flutter_pong_online/app/utils/signalr_connection.dart';
@@ -20,17 +21,18 @@ class GameScreenController extends GetxController
     isBottom(Get.arguments == GameSide.Bottom);
     gamelogic = Gamelogic(
         gameside: Get.arguments,
-        syncGamePosition: syncGamePosition,
+        syncBallPosition: syncBallPosition,
         syncPlayerPosition: syncPlayerPosition,
+        onScoreChanged: onScoreChanged,
         vsync: this);
   }
 
-  void syncGamePosition(GamePosition gameposition) {
-    signalRConnection.updateGamePosition(gameposition);
+  void syncBallPosition(BallPosition gameposition) {
+    signalRConnection.updateBallPosition(gameposition);
   }
 
   void syncPlayerPosition(PlayerPosition playerPosition) {
-    signalRConnection.batGamePosition(playerPosition);
+    signalRConnection.updatePlayerGamePosition(playerPosition);
   }
 
   void setOpponentPlayerPosition(PlayerPosition gameposition) {
@@ -44,17 +46,19 @@ class GameScreenController extends GetxController
   void startGame() {
     gamelogic.startGame();
     change(null, status: RxStatus.success());
-    // isGameInProcess(true);
   }
 
-  void finishGame(GamePosition gamePosition) {
+  void finishGame(GameScore gamePosition) {
     gamelogic.finishGame(gamePosition);
     change(null, status: RxStatus.empty());
-    // isGameInProcess(false);
   }
 
-  void setGamePosition(GamePosition gameposition) {
-    gamelogic.setGamePosition(gameposition);
+  void setGamePosition(BallPosition ballPosition) {
+    gamelogic.setBallPosition(ballPosition);
+  }
+
+  void syncScores({required int topScore, required int bottomScore}) {
+    gamelogic.syncScores(topScore: topScore, bottomScore: bottomScore);
   }
 
   void beforeStartCountdown(String beforestart) {
@@ -62,5 +66,9 @@ class GameScreenController extends GetxController
       change(null, status: RxStatus.loading());
     }
     counddownText.value = 'Start in $beforestart';
+  }
+
+  void onScoreChanged(GameScore gameScore) {
+    signalRConnection.updateGameScore(gameScore);
   }
 }
