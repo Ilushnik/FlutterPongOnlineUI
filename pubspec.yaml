@@ -1,0 +1,23 @@
+name: flutter_pong_online
+version: 1.0.0+1
+publish_to: none
+description: A new Flutter project.
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  desktop_window: ^0.4.0
+  get: ^4.1.4
+  signalr_core: ^1.1.1
+  simple_animations: ^3.1.1
+  supercharged: ^2.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
