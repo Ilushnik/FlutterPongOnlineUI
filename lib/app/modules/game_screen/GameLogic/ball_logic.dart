@@ -25,7 +25,7 @@ class BallLogic {
 
   SingleGetTickerProviderMixin vsync;
 
-  RxInt gameTickInMiliseconds = 1000.obs;
+  RxInt gameTickInSeconds = 10.obs;
 
   late Timer gameLoopTimer;
 
@@ -43,12 +43,13 @@ class BallLogic {
     ballDiameter = ballradius * 2;
 
     gameLoopTimer = Timer.periodic(
-        Duration(milliseconds: gameTickInMiliseconds.value), onUpdateTick);
-    animationController = AnimationController(vsync: vsync, duration: 1.seconds)
-      ..addListener(() {
-        ballPosX.value = posXTween!.value;
-        ballPosY.value = posYTween!.value;
-      });
+        Duration(seconds: gameTickInSeconds.value), onUpdateTick);
+    animationController =
+        AnimationController(vsync: vsync, duration: Duration(seconds: 4))
+          ..addListener(() {
+            ballPosX.value = posXTween!.value;
+            ballPosY.value = posYTween!.value;
+          });
   }
 
   void onUpdateTick(Timer timer) {
@@ -61,12 +62,13 @@ class BallLogic {
 
     animationController.stop();
     animationController.dispose();
-    animationController = AnimationController(vsync: vsync, duration: 1.seconds)
-      ..addListener(() {
-        ballPosX.value = posXTween!.value.toPrecision(2);
-        ballPosY.value = posYTween!.value.toPrecision(2);
-        checkForObsticals();
-      });
+    animationController =
+        AnimationController(vsync: vsync, duration: Duration(seconds: 4))
+          ..addListener(() {
+            ballPosX.value = posXTween!.value.toPrecision(2);
+            ballPosY.value = posYTween!.value.toPrecision(2);
+            checkForObsticals();
+          });
 
     posXTween = Tween<double>(
             begin: posXOld, end: ballPosX.value + ballXSpeed.value * directionX)
@@ -94,8 +96,6 @@ class BallLogic {
 
     if (ballPosY >= ScreenManager.screenSizeHeight - ballDiameter &&
         directionY == 1) {
-      print(
-          'On hit top ball:$ballPosY Screen: ${ScreenManager.screenSizeHeight - ballDiameter}');
       directionY = -1;
       _onHitFunc(Side.Top);
       onUpdate();
@@ -146,14 +146,14 @@ class BallLogic {
   }
 
   void startGame() {
-    print('startGame ball');
-    ballXSpeed.value = 250.0;
-    ballYSpeed.value = 400.0;
+    print('Game Started');
+    ballXSpeed.value = 3600.0;
+    ballYSpeed.value = 3000.0;
     onUpdate();
   }
 
   void finishGame() {
-    print('finishGame ball');
+    print('finishGame');
     gameLoopTimer.cancel();
     animationController.stop();
     animationController.dispose();

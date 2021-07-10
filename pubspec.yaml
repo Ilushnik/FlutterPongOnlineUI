@@ -12,8 +12,6 @@ dependencies:
   desktop_window: ^0.4.0
   get: ^4.1.4
   signalr_core: ^1.1.1
-  simple_animations: ^3.1.1
-  supercharged: ^2.0.0
 
 dev_dependencies:
   flutter_test:

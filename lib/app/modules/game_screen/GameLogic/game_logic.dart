@@ -64,6 +64,9 @@ class Gamelogic {
   }
 
   void onBallPositionChanged(BallPosition ballPosition) {
+    //optimization
+    if (ballPosition.ballPosY > 40 && ballPosition.ballPosY < 600) return;
+
     if (_isMaster &&
         ballPosition.ballDirectionY == -1 &&
         ballPosition.ballPosY < playerPaddingY.value + playerHeight.value &&
@@ -81,11 +84,10 @@ class Gamelogic {
               (playerWidth.value / 2) -
               (ballPosition.ballPosX + ballLogic.ballradius.abs()))
           .abs();
-      if (ballPosition.ballXSpeed > 70) newballXSpeed = 70;
 
       var directionY = 1;
 
-      newballXSpeed = newballXSpeed * 10;
+      newballXSpeed = newballXSpeed * 100;
 
       ballLogic.change(BallPosition(
           ballPosX: ballPosition.ballPosX,
@@ -107,8 +109,8 @@ class Gamelogic {
                 ballLogic.ballDiameter &&
         ballPosition.ballPosX >= playerTopPosX.value &&
         ballPosition.ballPosX <= playerTopPosX.value + playerWidth.value) {
-      print('Top player made a hit');
       var newDirectionX = 0;
+      print('Top player made a hit');
       if (ballPosition.ballPosX < playerTopPosX.value + playerWidth / 2) {
         newDirectionX = -1;
       } else {
@@ -119,14 +121,13 @@ class Gamelogic {
               (playerWidth.value / 2) -
               (ballPosition.ballPosX + ballLogic.ballradius.abs()))
           .abs();
-      if (ballPosition.ballXSpeed > 70) newballXSpeed = 70;
       if (ballPosition.ballXSpeed < 5) {
         newDirectionX = <int>[-1, 1][Random().nextInt(1)];
         newballXSpeed = (Random().nextDouble().toPrecision(2) * 10);
       }
       var directionY = -1;
 
-      newballXSpeed = newballXSpeed * 10;
+      newballXSpeed = newballXSpeed * 100;
 
       ballLogic.change(BallPosition(
           ballPosX: ballPosition.ballPosX,
@@ -145,7 +146,6 @@ class Gamelogic {
   }
 
   void _updateGamePositionToServer() {
-    print('_updateGamePositionToServer outgoing');
     syncBallPosition(BallPosition(
       ballPosX: ballLogic.ballPosX.value,
       ballPosY: ballLogic.ballPosY.value,
@@ -183,7 +183,7 @@ class Gamelogic {
   bool get _isMaster => gameside == GameSide.Bottom;
 
   void setBallPosition(BallPosition ballPosition) {
-    print('setGamePosition');
+    print('Sync ball position');
     ballLogic.change(BallPosition(
         ballPosX: ballPosition.ballPosX,
         ballPosY: ballPosition.ballPosY,
