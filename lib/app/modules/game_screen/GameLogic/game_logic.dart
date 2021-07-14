@@ -60,7 +60,7 @@ class Gamelogic {
       onScoreChanged(
           GameScore(topScore: topScore.value, bottomScore: bottomScore.value));
     }
-    ;
+    
   }
 
   void onBallPositionChanged(BallPosition ballPosition) {
