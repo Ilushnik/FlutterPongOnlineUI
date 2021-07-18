@@ -17,8 +17,8 @@ class Gamelogic {
   final RxDouble playerWidth = 120.0.obs;
 
   late GameSide gameSide;
-  late BallPositionFunc syncBallPosition;
-  late Function syncPlayerPosition;
+  late BallPositionFunc updateBallPosition;
+  late Function updatePlayerGamePosition;
   late GameScoreFunc onScoreChanged;
 
   late Timer playerPositionTimer;
@@ -37,8 +37,8 @@ class Gamelogic {
 
   Gamelogic(
       {required this.gameSide,
-      required this.syncBallPosition,
-      required this.syncPlayerPosition,
+      required this.updateBallPosition,
+      required this.updatePlayerGamePosition,
       required this.onScoreChanged,
       required vsync}) {
     ballLogic = BallLogic(
@@ -105,7 +105,7 @@ class Gamelogic {
   }
 
   void _updateGamePositionToServer() {
-    syncBallPosition(BallPosition(
+    updateBallPosition(BallPosition(
       ballPosX: ballLogic.ballPosX.value,
       ballPosY: ballLogic.ballPosY.value,
       ballXSpeed: ballLogic.ballXSpeed.value,
@@ -116,7 +116,7 @@ class Gamelogic {
   }
 
   void _onSyncPlayerPosition({required bool isBallHit}) {
-    syncPlayerPosition(PlayerPosition(
+    updatePlayerGamePosition(PlayerPosition(
         playerPosX: _isBottom ? playerBottomPosX.value : playerTopPosX.value,
         isBallHit: isBallHit));
   }
@@ -135,7 +135,7 @@ class Gamelogic {
         ballDirectionY: ballPosition.ballDirectionY));
   }
 
-  void syncScores({required int topScore, required int bottomScore}) {
+  void setScores({required int topScore, required int bottomScore}) {
     this.topScore.value = topScore;
     this.bottomScore.value = bottomScore;
     scoreText.value = '$bottomScore.\nVS\n$topScore';

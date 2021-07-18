@@ -71,7 +71,7 @@ class SignalrConnection extends ChangeNotifier {
       print('updateGameScore incoming');
       var ballPosition =
           GameScore.fromJson(message![0] as Map<String, dynamic>);
-      Get.find<GameScreenController>().syncScores(
+      Get.find<GameScreenController>().setScores(
           topScore: ballPosition.topScore,
           bottomScore: ballPosition.bottomScore);
     });

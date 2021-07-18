@@ -21,22 +21,10 @@ class GameScreenController extends GetxController
     isBottom(Get.arguments == GameSide.Bottom);
     gamelogic = Gamelogic(
         gameSide: Get.arguments,
-        syncBallPosition: syncBallPosition,
-        syncPlayerPosition: syncPlayerPosition,
-        onScoreChanged: onScoreChanged,
+        updateBallPosition: updateBallPosition,
+        updatePlayerGamePosition: updatePlayerGamePosition,
+        onScoreChanged: updateGameScore,
         vsync: this);
-  }
-
-  void syncBallPosition(BallPosition gameposition) {
-    signalRConnection.updateBallPosition(gameposition);
-  }
-
-  void syncPlayerPosition(PlayerPosition playerPosition) {
-    signalRConnection.updatePlayerGamePosition(playerPosition);
-  }
-
-  void setOpponentPlayerPosition(PlayerPosition playerPosition) {
-    gamelogic.setOpponentPlayerPosition(playerPosition);
   }
 
   void startGame() {
@@ -44,17 +32,28 @@ class GameScreenController extends GetxController
     change(null, status: RxStatus.success());
   }
 
-  void finishGame(GameScore gamePosition) {
-    gamelogic.finishGame(gamePosition);
-    change(null, status: RxStatus.empty());
+  void updateBallPosition(BallPosition gameposition) {
+    signalRConnection.updateBallPosition(gameposition);
+  }
+
+  void updatePlayerGamePosition(PlayerPosition playerPosition) {
+    signalRConnection.updatePlayerGamePosition(playerPosition);
+  }
+
+  void updateGameScore(GameScore gameScore) {
+    signalRConnection.updateGameScore(gameScore);
+  }
+
+  void setOpponentPlayerPosition(PlayerPosition playerPosition) {
+    gamelogic.setOpponentPlayerPosition(playerPosition);
+  }
+
+  void setScores({required int topScore, required int bottomScore}) {
+    gamelogic.setScores(topScore: topScore, bottomScore: bottomScore);
   }
 
   void setGamePosition(BallPosition ballPosition) {
     gamelogic.setBallPosition(ballPosition);
-  }
-
-  void syncScores({required int topScore, required int bottomScore}) {
-    gamelogic.syncScores(topScore: topScore, bottomScore: bottomScore);
   }
 
   void beforeStartCountdown(String beforestart) {
@@ -64,7 +63,8 @@ class GameScreenController extends GetxController
     counddownText.value = 'Start in $beforestart';
   }
 
-  void onScoreChanged(GameScore gameScore) {
-    signalRConnection.updateGameScore(gameScore);
+  void finishGame(GameScore gamePosition) {
+    gamelogic.finishGame(gamePosition);
+    change(null, status: RxStatus.empty());
   }
 }
