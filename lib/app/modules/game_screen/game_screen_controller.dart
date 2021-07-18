@@ -32,8 +32,8 @@ class GameScreenController extends GetxController
     change(null, status: RxStatus.success());
   }
 
-  void updateBallPosition(BallPosition gameposition) {
-    signalRConnection.updateBallPosition(gameposition);
+  void updateBallPosition(BallPosition ballPosition) {
+    signalRConnection.updateBallPosition(ballPosition);
   }
 
   void updatePlayerGamePosition(PlayerPosition playerPosition) {
@@ -48,8 +48,8 @@ class GameScreenController extends GetxController
     gamelogic.setOpponentPlayerPosition(playerPosition);
   }
 
-  void setScores({required int topScore, required int bottomScore}) {
-    gamelogic.setScores(topScore: topScore, bottomScore: bottomScore);
+  void setScores(GameScore gameScore) {
+    gamelogic.setScores(gameScore);
   }
 
   void setGamePosition(BallPosition ballPosition) {
@@ -63,8 +63,8 @@ class GameScreenController extends GetxController
     counddownText.value = 'Start in $beforestart';
   }
 
-  void finishGame(GameScore gamePosition) {
-    gamelogic.finishGame(gamePosition);
+  void finishGame(GameScore gameScore) {
+    gamelogic.finishGame(gameScore);
     change(null, status: RxStatus.empty());
   }
 }

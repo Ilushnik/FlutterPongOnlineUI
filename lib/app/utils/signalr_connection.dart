@@ -69,11 +69,8 @@ class SignalrConnection extends ChangeNotifier {
 
     connection.on('PlayerMakeAGoal', (message) {
       print('updateGameScore incoming');
-      var ballPosition =
-          GameScore.fromJson(message![0] as Map<String, dynamic>);
-      Get.find<GameScreenController>().setScores(
-          topScore: ballPosition.topScore,
-          bottomScore: ballPosition.bottomScore);
+      var gameScore = GameScore.fromJson(message![0] as Map<String, dynamic>);
+      Get.find<GameScreenController>().setScores(gameScore);
     });
 
     connection.on('UpdateGamePosition', (message) {
@@ -85,16 +82,16 @@ class SignalrConnection extends ChangeNotifier {
 
     connection.on('UpdatePlayerPosition', (message) {
       print('UpdatePlayerPosition incoming');
-      var ballPosition =
+      var playerPosition =
           PlayerPosition.fromJson(message![0] as Map<String, dynamic>);
-      Get.find<GameScreenController>().setOpponentPlayerPosition(ballPosition);
+      Get.find<GameScreenController>()
+          .setOpponentPlayerPosition(playerPosition);
     });
 
     connection.on('FinishGame', (message) {
       print('FinishGame incoming');
-      var ballPosition =
-          GameScore.fromJson(message![0] as Map<String, dynamic>);
-      Get.find<GameScreenController>().finishGame(ballPosition);
+      var gameScore = GameScore.fromJson(message![0] as Map<String, dynamic>);
+      Get.find<GameScreenController>().finishGame(gameScore);
     });
 
     await connection.start();
@@ -136,9 +133,7 @@ class SignalrConnection extends ChangeNotifier {
 
   void getTakenGameSide() {
     print('GetTakenGameSide outgoing');
-    connection.invoke(
-      'GetTakenGameSide',
-    );
+    connection.invoke('GetTakenGameSide');
   }
 
   void updateGameScore(GameScore gameScore) {

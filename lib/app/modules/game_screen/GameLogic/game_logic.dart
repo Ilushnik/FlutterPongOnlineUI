@@ -135,9 +135,9 @@ class Gamelogic {
         ballDirectionY: ballPosition.ballDirectionY));
   }
 
-  void setScores({required int topScore, required int bottomScore}) {
-    this.topScore.value = topScore;
-    this.bottomScore.value = bottomScore;
+  void setScores(GameScore gameScore) {
+    this.topScore.value = gameScore.topScore;
+    this.bottomScore.value = gameScore.bottomScore;
     scoreText.value = '$bottomScore.\nVS\n$topScore';
   }
 
