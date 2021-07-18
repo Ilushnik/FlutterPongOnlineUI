@@ -53,7 +53,7 @@ class GameScreenView extends GetView<GameScreenController> {
                   controller.isBottom.isTrue ? GameSide.Bottom : GameSide.Top,
               playerUpdateInMiliseconds: controller.isBottom.isFalse
                   ? 0
-                  : controller.gamelogic.playersSyncInMiliseconds,
+                  : controller.gamelogic.playersSyncInMiliseconds.value,
             ),
             Player(
               posX: controller.gamelogic.playerBottomPosX.value,
@@ -72,7 +72,7 @@ class GameScreenView extends GetView<GameScreenController> {
                   controller.isBottom.isTrue ? GameSide.Bottom : GameSide.Top,
               playerUpdateInMiliseconds: controller.isBottom.isTrue
                   ? 0
-                  : controller.gamelogic.playersSyncInMiliseconds,
+                  : controller.gamelogic.playersSyncInMiliseconds.value,
             ),
             Positioned(
               bottom: controller.gamelogic.ballLogic.posYTween == null

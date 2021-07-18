@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter_pong_online/app/data/ball_position.dart';
 import 'package:flutter_pong_online/app/data/gameScore.dart';
 import 'package:flutter_pong_online/app/data/player_position.dart';
 import 'package:flutter_pong_online/app/modules/game_screen/GameLogic/ball_Logic.dart';
+import 'package:flutter_pong_online/app/modules/game_screen/GameLogic/collusion_detection.dart';
 import 'package:flutter_pong_online/app/modules/game_screen/GameLogic/utils.dart';
 import 'package:flutter_pong_online/app/modules/game_screen/widgets/player_widget.dart';
-import 'package:flutter_pong_online/app/utils/screen_manager.dart';
 import 'package:get/get.dart';
 
 class Gamelogic {
@@ -17,7 +16,7 @@ class Gamelogic {
   final RxDouble playerHeight = 10.0.obs;
   final RxDouble playerWidth = 120.0.obs;
 
-  late GameSide gameside;
+  late GameSide gameSide;
   late BallPositionFunc syncBallPosition;
   late Function syncPlayerPosition;
   late GameScoreFunc onScoreChanged;
@@ -27,15 +26,17 @@ class Gamelogic {
   final bottomScore = 0.obs;
   final topScore = 0.obs;
 
-  final int playersSyncInMiliseconds = 500;
+  static const int playersSyncInMilisecondsConst = 500;
+  final RxInt playersSyncInMiliseconds = 500.obs;
 
   late BallLogic ballLogic;
+  late CollusionDetection _collusionDetection;
 
   RxString scoreText = ''.obs;
   late var scoreFromServer = ''.obs;
 
   Gamelogic(
-      {required this.gameside,
+      {required this.gameSide,
       required this.syncBallPosition,
       required this.syncPlayerPosition,
       required this.onScoreChanged,
@@ -46,11 +47,22 @@ class Gamelogic {
       onHitFunc: onBallHitBound,
     );
     playerPositionTimer = Timer.periodic(
-        Duration(milliseconds: playersSyncInMiliseconds),
-        (t) => _onSyncPlayerPosition());
+        Duration(milliseconds: playersSyncInMilisecondsConst),
+        (t) => _onSyncPlayerPosition(isBallHit: false));
+
+    _collusionDetection = CollusionDetection(
+        gameSide,
+        playerPaddingY.value,
+        playerHeight.value,
+        playerWidth.value,
+        ballLogic.ballDiameter,
+        onPlayerMadeAHit);
   }
 
   void onBallHitBound(Side side) {
+    if (gameSide == GameSide.Bottom && side != Side.Bottom ||
+        gameSide == GameSide.Top && side != Side.Top) return;
+
     if (side == Side.Bottom) {
       topScore.value++;
       onScoreChanged(
@@ -60,89 +72,36 @@ class Gamelogic {
       onScoreChanged(
           GameScore(topScore: topScore.value, bottomScore: bottomScore.value));
     }
-    
+  }
+
+  void onPlayerMadeAHit(
+      {required BallPosition currentBallPosition,
+      required double newBallXSpeed,
+      required int newDirectionX,
+      required int newDirectionY}) {
+    ballLogic.change(BallPosition(
+        ballPosX: ballLogic.ballPosX.value,
+        ballPosY: ballLogic.ballPosY.value,
+        ballXSpeed: newBallXSpeed,
+        ballYSpeed: ballLogic.ballYSpeed.value,
+        ballDirectionX: newDirectionX,
+        ballDirectionY: newDirectionY));
+    _updateGamePositionToServer();
+    _onSyncPlayerPosition(isBallHit: true);
   }
 
   void onBallPositionChanged(BallPosition ballPosition) {
-    //optimization
-    if (ballPosition.ballPosY > 40 && ballPosition.ballPosY < 600) return;
-
-    if (_isMaster &&
-        ballPosition.ballDirectionY == -1 &&
-        ballPosition.ballPosY < playerPaddingY.value + playerHeight.value &&
-        ballPosition.ballPosX >= playerBottomPosX.value &&
-        ballPosition.ballPosX <= playerBottomPosX.value + playerWidth.value) {
-      print('Bottom player made a hit');
-      var newDirectionX = 0;
-      if (ballPosition.ballPosX < playerBottomPosX.value + playerWidth / 2) {
-        newDirectionX = -1;
-      } else {
-        newDirectionX = 1;
-      }
-
-      var newballXSpeed = (playerBottomPosX.value +
-              (playerWidth.value / 2) -
-              (ballPosition.ballPosX + ballLogic.ballradius.abs()))
-          .abs();
-
-      var directionY = 1;
-
-      newballXSpeed = newballXSpeed * 100;
-
-      ballLogic.change(BallPosition(
-          ballPosX: ballPosition.ballPosX,
-          ballPosY: ballPosition.ballPosY,
-          ballXSpeed: newballXSpeed,
-          ballYSpeed: ballPosition.ballYSpeed,
-          ballDirectionX: newDirectionX,
-          ballDirectionY: directionY));
-
-      _updateGamePositionToServer();
-    }
-
-    if (!_isMaster &&
-        ballPosition.ballDirectionY == 1 &&
-        ballPosition.ballPosY >
-            ScreenManager.screenSizeHeight -
-                playerPaddingY.value -
-                playerHeight.value -
-                ballLogic.ballDiameter &&
-        ballPosition.ballPosX >= playerTopPosX.value &&
-        ballPosition.ballPosX <= playerTopPosX.value + playerWidth.value) {
-      var newDirectionX = 0;
-      print('Top player made a hit');
-      if (ballPosition.ballPosX < playerTopPosX.value + playerWidth / 2) {
-        newDirectionX = -1;
-      } else {
-        newDirectionX = 1;
-      }
-
-      var newballXSpeed = (playerTopPosX.value +
-              (playerWidth.value / 2) -
-              (ballPosition.ballPosX + ballLogic.ballradius.abs()))
-          .abs();
-      if (ballPosition.ballXSpeed < 5) {
-        newDirectionX = <int>[-1, 1][Random().nextInt(1)];
-        newballXSpeed = (Random().nextDouble().toPrecision(2) * 10);
-      }
-      var directionY = -1;
-
-      newballXSpeed = newballXSpeed * 100;
-
-      ballLogic.change(BallPosition(
-          ballPosX: ballPosition.ballPosX,
-          ballPosY: ballPosition.ballPosY,
-          ballXSpeed: newballXSpeed,
-          ballYSpeed: ballPosition.ballYSpeed,
-          ballDirectionX: newDirectionX,
-          ballDirectionY: directionY));
-      _updateGamePositionToServer();
-    }
+    _collusionDetection.checkCollusion(
+        ballPosition,
+        gameSide == GameSide.Bottom
+            ? playerBottomPosX.value
+            : playerTopPosX.value,
+        playerPaddingY);
   }
 
   void startGame() {
     ballLogic.startGame();
-    if (_isMaster) _updateGamePositionToServer();
+    if (_isBottom) _updateGamePositionToServer();
   }
 
   void _updateGamePositionToServer() {
@@ -156,34 +115,17 @@ class Gamelogic {
     ));
   }
 
-  void _onSyncPlayerPosition() {
+  void _onSyncPlayerPosition({required bool isBallHit}) {
     syncPlayerPosition(PlayerPosition(
-      playerPosX: _isMaster ? playerBottomPosX.value : playerTopPosX.value,
-    ));
+        playerPosX: _isBottom ? playerBottomPosX.value : playerTopPosX.value,
+        isBallHit: isBallHit));
   }
 
-  void finishGame(GameScore gamePosition) {
-    ballLogic.finishGame();
-
-    playerPositionTimer.cancel();
-
-    var gameResult = '';
-    if ((_isMaster && gamePosition.bottomScore > gamePosition.topScore) ||
-        (!_isMaster && bottomScore.value < topScore.value)) {
-      gameResult = 'Congratulations!\nYou Win!';
-    } else if (gamePosition.bottomScore == gamePosition.topScore) {
-      gameResult = 'The points are equal. Friendship! :)';
-    } else {
-      gameResult = 'You Lose!';
-    }
-
-    Get.back(result: gameResult);
-  }
-
-  bool get _isMaster => gameside == GameSide.Bottom;
+  bool get _isBottom => gameSide == GameSide.Bottom;
 
   void setBallPosition(BallPosition ballPosition) {
     print('Sync ball position');
+
     ballLogic.change(BallPosition(
         ballPosX: ballPosition.ballPosX,
         ballPosY: ballPosition.ballPosY,
@@ -197,5 +139,34 @@ class Gamelogic {
     this.topScore.value = topScore;
     this.bottomScore.value = bottomScore;
     scoreText.value = '$bottomScore.\nVS\n$topScore';
+  }
+
+  void setOpponentPlayerPosition(PlayerPosition opponentPlayerPosition) {
+    playersSyncInMiliseconds.value = opponentPlayerPosition.isBallHit
+        ? 100
+        : Gamelogic.playersSyncInMilisecondsConst;
+    if (gameSide == GameSide.Bottom) {
+      playerTopPosX.value = opponentPlayerPosition.playerPosX;
+    } else {
+      playerBottomPosX.value = opponentPlayerPosition.playerPosX;
+    }
+  }
+
+  void finishGame(GameScore gamePosition) {
+    ballLogic.finishGame();
+
+    playerPositionTimer.cancel();
+
+    var gameResult = '';
+    if ((_isBottom && gamePosition.bottomScore > gamePosition.topScore) ||
+        (!_isBottom && bottomScore.value < topScore.value)) {
+      gameResult = 'Congratulations!\nYou Win!';
+    } else if (gamePosition.bottomScore == gamePosition.topScore) {
+      gameResult = 'The points are equal. Friendship! :)';
+    } else {
+      gameResult = 'You Lose!';
+    }
+
+    Get.back(result: gameResult);
   }
 }

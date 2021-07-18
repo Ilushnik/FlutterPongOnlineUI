@@ -7,3 +7,9 @@ typedef GameScoreFunc = void Function(GameScore);
 typedef OnHitFunc = void Function(Side);
 
 enum Side { Top, Right, Bottom, Left }
+
+typedef OnPlayerMadeAHit = void Function(
+    {required BallPosition currentBallPosition,
+    required double newBallXSpeed,
+    required int newDirectionX,
+    required int newDirectionY});

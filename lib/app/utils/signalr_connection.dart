@@ -68,7 +68,7 @@ class SignalrConnection extends ChangeNotifier {
     });
 
     connection.on('PlayerMakeAGoal', (message) {
-      print('PlayerMakeAGoal incoming');
+      print('updateGameScore incoming');
       var ballPosition =
           GameScore.fromJson(message![0] as Map<String, dynamic>);
       Get.find<GameScreenController>().syncScores(
@@ -142,7 +142,7 @@ class SignalrConnection extends ChangeNotifier {
   }
 
   void updateGameScore(GameScore gameScore) {
-    print('updateGaneScore outgoing');
+    print('updateGameScore outgoing');
     connection.invoke('PlayerMakeAGoal', args: [gameScore.toJson()]);
   }
 }

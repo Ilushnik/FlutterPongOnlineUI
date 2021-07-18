@@ -20,7 +20,7 @@ class GameScreenController extends GetxController
 
     isBottom(Get.arguments == GameSide.Bottom);
     gamelogic = Gamelogic(
-        gameside: Get.arguments,
+        gameSide: Get.arguments,
         syncBallPosition: syncBallPosition,
         syncPlayerPosition: syncPlayerPosition,
         onScoreChanged: onScoreChanged,
@@ -35,12 +35,8 @@ class GameScreenController extends GetxController
     signalRConnection.updatePlayerGamePosition(playerPosition);
   }
 
-  void setOpponentPlayerPosition(PlayerPosition gameposition) {
-    if (isBottom.isTrue) {
-      gamelogic.playerTopPosX.value = gameposition.playerPosX;
-    } else {
-      gamelogic.playerBottomPosX.value = gameposition.playerPosX;
-    }
+  void setOpponentPlayerPosition(PlayerPosition playerPosition) {
+    gamelogic.setOpponentPlayerPosition(playerPosition);
   }
 
   void startGame() {
